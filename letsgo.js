@@ -51,7 +51,7 @@
         save_debug(key, value)
     }
 
-    function attachEvent(input) {
+    function attach_event(input) {
         debug.attached.push(input)
 
         function send_save(input) {
@@ -77,15 +77,15 @@
         });
     }
 
-    function traverseNodes(node) {
+    function traverse_nodes(node) {
         if (node.nodeName.toLowerCase() === 'input')
-            attachEvent(node);
+            attach_event(node);
         if (node.shadowRoot)
-            node.shadowRoot.childNodes.forEach(traverseNodes);
-        node.childNodes.forEach(traverseNodes);
+            node.shadowRoot.childNodes.forEach(traverse_nodes);
+        node.childNodes.forEach(traverse_nodes);
     }
 
-    function attachAll() {
+    function attach_all() {
         if (!window.posthog) {
             debug.run_details.error = "Posthog not found"
             return
@@ -96,32 +96,32 @@
         //}
         
         debug.run_details.ran = true
-        traverseNodes(document.body);
+        traverse_nodes(document.body);
 
         // Observe for dynamically created inputs
         var observer = new MutationObserver((mutationsList, observer) => {
             for(let mutation of mutationsList) {
                 if (mutation.type === 'childList') {
                     mutation.addedNodes.forEach(node => {
-                        traverseNodes(node);
+                        traverse_nodes(node);
                     });
                 }
             }
         });
         
-        function observeAllShadowRoots(node) {
+        function observe_all_shadow_roots(node) {
             if (node.shadowRoot) {
                 observer.observe(node.shadowRoot, { childList: true, subtree: true });
-                node.shadowRoot.childNodes.forEach(observeAllShadowRoots);
+                node.shadowRoot.childNodes.forEach(observe_all_shadow_roots);
             }
-            node.childNodes.forEach(observeAllShadowRoots);
+            node.childNodes.forEach(observe_all_shadow_roots);
         }
         // observe body changes
         observer.observe(document.body, { childList: true, subtree: true });
         // observe shadow-root changes
-        observeAllShadowRoots(document.body, observer);
+        observe_all_shadow_roots(document.body, observer);
     }
 
-    attachAll()
-    window.addEventListener('DOMContentLoaded', attachAll);
+    attach_all()
+    window.addEventListener('DOMContentLoaded', attach_all);
 })();
