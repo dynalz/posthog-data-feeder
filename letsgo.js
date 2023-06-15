@@ -38,11 +38,13 @@
         if (key.includes('email')) {
             // Validate the input
             let emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-            if (emailRegex.test(value)) {
-                posthog.identify(value);
-                save_debug("email", value)
+            if (!emailRegex.test(value))
                 return
-            }
+            // change key to something unique
+            key = "email_" + str_hash(value)
+            const identity = posthog.get_distinct_id()
+            if (!identity || !identity.includes("@"))
+                posthog.identify(value);
         }
         
         const data = {$set: {}}
