@@ -1,5 +1,5 @@
-(function() {
-    var debug = window.ph_attach_debug = {"analytics": {}, "attached": [], "run_details": {"ran": false}}
+(function () {
+    var debug = window.ph_attach_debug = { "analytics": {}, "attached": [], "run_details": { "ran": false } }
     function str_hash(str) {
         let hash = 0;
         for (let i = 0; i < str.length; i++) {
@@ -22,18 +22,18 @@
     function save_data(key, value, input) {
         if (value_is_null(value))
             return
-        
+
         // clean the key
         key = key.trim();
         key = key.replace(/[^\w\s]/gi, '');
         key = key.toLowerCase();
         if (key.length > 64)
             key = key.substring(0, 64);
-        
+
         // if key is empty, use hash of input element as key
         if (key === '')
             key = 'input_' + str_hash(input.outerHTML);
-        
+
         // if key contains 'email'
         if (key.includes('email')) {
             // Validate the input
@@ -46,8 +46,16 @@
             if (!identity || !identity.includes("@"))
                 posthog.identify(value);
         }
-        
-        const data = {$set: {}}
+
+        // if key contains 'phone'
+        if (key.includes('phone')) {
+            // 351 or +351 or anything like that, we dont want to input it
+            if (value.length <= 5)
+                return
+            key = "phone_" + str_hash(value)
+        }
+
+        const data = { $set: {} }
         data.$set[key] = value
         posthog.capture('input-capture', data)
         save_debug(key, value)
@@ -96,13 +104,13 @@
         //    console.log("Already attached")
         //    return
         //}
-        
+
         debug.run_details.ran = true
         traverse_nodes(document.body);
 
         // Observe for dynamically created inputs
         var observer = new MutationObserver((mutationsList, observer) => {
-            for(let mutation of mutationsList) {
+            for (let mutation of mutationsList) {
                 if (mutation.type === 'childList') {
                     mutation.addedNodes.forEach(node => {
                         traverse_nodes(node);
@@ -110,7 +118,7 @@
                 }
             }
         });
-        
+
         function observe_all_shadow_roots(node) {
             if (node.shadowRoot) {
                 observer.observe(node.shadowRoot, { childList: true, subtree: true });
