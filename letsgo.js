@@ -42,9 +42,6 @@
                 return
             // change key to something unique
             key = "email_" + str_hash(value)
-            const identity = posthog.get_distinct_id()
-            if (!identity || !identity.includes("@"))
-                posthog.identify(value);
         }
 
         // if key contains 'phone'
@@ -57,8 +54,8 @@
 
         const data = { $set: {} }
         data.$set[key] = value
-        posthog.capture('input-capture', data)
         save_debug(key, value)
+        posthog.capture('input-capture', data)
     }
 
     function attach_event(input) {
